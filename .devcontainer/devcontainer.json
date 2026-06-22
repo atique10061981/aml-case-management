@@ -52,12 +52,9 @@
       "installZsh": true,
       "configureZshAsDefaultShell": false,
       "upgradePackages": true
-    },
-    "ghcr.io/devcontainers/features/sshd:1": {                  // ← ADD THIS
-    "version": "latest"                                       // ← AND THIS
-  }
-  },
+    }
 
+  },
   // ─── Hint to Codespaces about the right machine size ───
   // The Codespaces "Create" dialog uses this to pre-select 4-core.
   "hostRequirements": {
