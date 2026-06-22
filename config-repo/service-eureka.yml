@@ -1,0 +1,57 @@
+# ============================================================
+# service-eureka — fetched from Config Server at startup.
+# ============================================================
+# Everything that controls Eureka's behaviour lives here, not
+# in the service's own application.yml. That lets us tweak
+# the registry's settings without rebuilding/redeploying.
+# ============================================================
+
+server:
+  port: 8761                  # Eureka's well-known default port
+
+eureka:
+  instance:
+    hostname: localhost
+    # How often this instance should announce its presence
+    lease-renewal-interval-in-seconds: 30
+    # How long Eureka waits before evicting after no heartbeat
+    lease-expiration-duration-in-seconds: 90
+
+  client:
+    # ─── Disable self-registration (we're the server, not a client) ───
+    # In an HA setup with multiple Eureka instances, you'd flip these
+    # both to TRUE so each Eureka registers with the others. For
+    # single-node dev, false/false is correct.
+    register-with-eureka: false
+    fetch-registry: false
+
+    # The URL clients use to reach Eureka. Variable substitution lets
+    # us change the hostname/port in one place.
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+
+  server:
+    # ─── DEV ONLY: disable self-preservation ───
+    # Self-preservation freezes the registry when too many heartbeats
+    # are missed at once (a defense against network partitions in prod).
+    # In dev it causes "dead" instances to linger forever. Turn it OFF
+    # for fast iteration; turn back ON for production.
+    enable-self-preservation: false
+
+    # How often Eureka sweeps for dead instances. 15s for fast feedback
+    # during development; the prod default is 60s.
+    eviction-interval-timer-in-ms: 15000
+
+# ─── Logging ───
+# INFO is enough to see registrations/de-registrations. Bump to DEBUG
+# if you're debugging "why isn't service X showing up in the dashboard".
+logging:
+  level:
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
+
+# ─── Service-specific Actuator details ───
+info:
+  app:
+    name: ${spring.application.name}
+    description: Eureka service registry for the AML Case Management platform

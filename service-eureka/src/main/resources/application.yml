@@ -1,0 +1,33 @@
+# ============================================================
+# Eureka — bootstrap configuration (baked into the JAR)
+# ============================================================
+# Everything else lives in config-repo/service-eureka.yml and
+# is fetched from the Config Server at startup. That's the
+# Spring Cloud Config CLIENT pattern in action.
+# ============================================================
+
+spring:
+  application:
+    # This name is the KEY that the Config Server uses to find
+    # the right config file: it will serve config-repo/service-eureka.yml
+    # when this service asks for /{name}/{profile}.
+    name: service-eureka
+
+  config:
+    # Import properties from the Config Server during early bootstrap,
+    # before the rest of this file (and Spring auto-config) is processed.
+    #   - "configserver:" is the protocol scheme that activates the
+    #     spring-cloud-starter-config client.
+    #   - "optional:" prefix means "don't fail if Config Server is down".
+    #     Remove the optional: prefix in production to fail-fast.
+    import: optional:configserver:http://localhost:8888
+
+  cloud:
+    config:
+      # Service name used to fetch config (defaults to spring.application.name).
+      name: service-eureka
+      # Quick failure on Config Server connection issues during local dev.
+      fail-fast: false
+      retry:
+        max-attempts: 3
+        initial-interval: 1000
