@@ -1,0 +1,21 @@
+# ============================================================
+# API Gateway — bootstrap (baked into JAR)
+# ============================================================
+# Real config lives in config-repo/service-api-gateway.yml and
+# is fetched from the Config Server at startup.
+# ============================================================
+
+spring:
+  application:
+    name: service-api-gateway
+
+  config:
+    import: optional:configserver:http://localhost:8888
+
+  cloud:
+    config:
+      name: service-api-gateway
+      fail-fast: false
+      retry:
+        max-attempts: 3
+        initial-interval: 1000

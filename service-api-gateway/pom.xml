@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.amlcm</groupId>
+        <artifactId>aml-case-management-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>service-api-gateway</artifactId>
+    <name>AML — API Gateway</name>
+    <description>
+        Spring Cloud Gateway. Reactive, service-discovery-aware edge service.
+        Single entry point for all external traffic into the AML Case Management
+        platform. Routes via Eureka, applies default filters, will later host
+        JWT validation and rate limiting.
+    </description>
+
+    <dependencies>
+
+        <!-- Spring Cloud Gateway.
+             Brings in spring-cloud-gateway-server-webflux and (transitively)
+             spring-boot-starter-webflux. DO NOT add spring-boot-starter-web
+             alongside this — they conflict (servlet vs reactive). -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
+        </dependency>
+
+        <!-- Eureka client.
+             Lets the Gateway register itself with Eureka (so we can see it
+             in the dashboard) AND lets it RESOLVE downstream services by
+             name when routes use `lb://service-name` URIs. -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+
+        <!-- Load Balancer.
+             Provides the `lb://` URI scheme handler that asks Eureka for
+             instances of a named service and picks one (round-robin by
+             default). Without this, lb:// URIs throw at runtime. -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
+        <!-- Config Server client -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+
+        <!-- Actuator. The /actuator/gateway/routes endpoint is genuinely
+             useful — it lists every route currently active. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Test scope -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

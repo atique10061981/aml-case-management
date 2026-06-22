@@ -1,0 +1,104 @@
+# ============================================================
+# service-api-gateway — fetched from Config Server
+# ============================================================
+# Routes are matched in declaration order. The first route whose
+# predicate matches wins. Each route has:
+#   id         — for logging/metrics
+#   uri        — where to forward to (http://..., https://..., or lb://service-name)
+#   predicates — when to match (Path, Host, Method, Header, ...)
+#   filters    — transformations (RewritePath, StripPrefix, AddRequestHeader, ...)
+# ============================================================
+
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          # Allow lb://service-name URIs to resolve via Eureka.
+          discovery:
+            locator:
+              # Set to true to auto-create a route per Eureka service.
+              # We keep it FALSE because we want explicit, intentional routes —
+              # auto-discovery routes leak internal service names to clients.
+              enabled: false
+              lower-case-service-id: true
+
+          # Default filters applied to EVERY route.
+          # These are the platform-wide rules; per-route filters add to them.
+          default-filters:
+            # Prevent duplicate CORS headers when a downstream already sends them
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+          # ─── Routes ─────────────────────────────────────────────
+          routes:
+
+            # DEMO ROUTE — proves routing works end-to-end.
+            # Hit http://localhost:8080/demo/get → forwarded to httpbin's /get.
+            # Useful for confirming the Gateway is alive without needing
+            # any of our domain services to exist yet.
+            - id: demo-httpbin
+              uri: https://httpbin.org
+              predicates:
+                - Path=/demo/**
+              filters:
+                # Strip the /demo prefix so the upstream URL is /get, /post, etc.
+                - RewritePath=/demo/(?<segment>.*), /$\{segment}
+
+            # PLACEHOLDER ROUTES for services we'll build later.
+            # Each maps a URL prefix to a Eureka-registered service via lb://.
+            # We add them now as commented examples so the YAML structure
+            # is right when we activate each one in later steps.
+            #
+            # - id: customer-route                  (Step 10)
+            #   uri: lb://service-customer
+            #   predicates:
+            #     - Path=/api/customers/**
+            #
+            # - id: transaction-route               (Step 11)
+            #   uri: lb://service-transaction
+            #   predicates:
+            #     - Path=/api/transactions/**
+            #
+            # - id: case-route                      (Step 13)
+            #   uri: lb://service-case
+            #   predicates:
+            #     - Path=/api/cases/**
+
+# ─── Eureka client ───
+# Register the Gateway with Eureka so it shows up in the dashboard,
+# and let it FETCH the registry so lb:// URIs can resolve.
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    # Don't wait forever if Eureka is slow to start
+    registry-fetch-interval-seconds: 5
+  instance:
+    # Use IP address rather than hostname for inter-service calls.
+    # In Codespaces hostnames are random strings; IPs are stable.
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+
+# ─── Actuator ───
+# Expose the gateway-specific endpoints in addition to the platform defaults.
+# /actuator/gateway/routes lists all live routes — invaluable for debugging.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  endpoint:
+    gateway:
+      access: read_only
+
+# ─── Logging ───
+logging:
+  level:
+    # Bump to DEBUG when a request isn't routing the way you expect.
+    org.springframework.cloud.gateway: INFO
+    reactor.netty.http.client: INFO

@@ -47,8 +47,7 @@
 
              <module>service-eureka</module>
 
-           <!--  <module>service-api-gateway</module>
-        -->
+            <module>service-api-gateway</module>
         <!-- Phase C (Security & Shared):
              <module>lib-aml-common</module>
              <module>lib-aml-security-starter</module>
