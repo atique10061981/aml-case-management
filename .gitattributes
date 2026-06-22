@@ -1,0 +1,33 @@
+# Normalize line endings — LF everywhere (Codespaces is Linux-native).
+# https://git-scm.com/docs/gitattributes
+
+* text=auto eol=lf
+
+# Explicit text types
+*.java text eol=lf
+*.kt text eol=lf
+*.xml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.properties text eol=lf
+*.json text eol=lf
+*.jsonc text eol=lf
+*.md text eol=lf
+*.toml text eol=lf
+*.sh text eol=lf
+mvnw text eol=lf
+Dockerfile text eol=lf
+
+# Binaries
+*.jar binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.docx binary
+
+# Windows scripts MUST keep CRLF for cmd.exe to interpret them correctly
+*.cmd text eol=crlf
+*.bat text eol=crlf
+mvnw.cmd text eol=crlf

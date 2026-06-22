@@ -1,0 +1,177 @@
+{
+  // ===========================================================
+  // AML Case Management — Codespaces dev environment
+  // ===========================================================
+  // This file declares everything our development container
+  // needs: Java 25, Maven, Docker (for our docker-compose infra
+  // in Step 3), GitHub CLI, kubectl/helm (for Step 29), plus
+  // the VS Code extensions any Java developer expects.
+  //
+  // Pinning the OS variant (-bookworm) keeps rebuilds stable:
+  // Microsoft might bump the base OS some day, but bookworm
+  // means Debian 12 forever for us.
+  // ===========================================================
+
+  "name": "AML Case Management",
+
+  "image": "mcr.microsoft.com/devcontainers/java:25-bookworm",
+
+  // ─── Features layered on top of the base image ───
+  // Features are pre-baked installation scripts the dev-containers
+  // community maintains. Cheaper than writing custom Dockerfile RUNs.
+  "features": {
+    // Java feature, with installMaven=true. The base image already
+    // has Java 25; this line ensures Maven is present AND it stays
+    // in sync if we ever change Java versions.
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "none",
+      "installMaven": "true",
+      "installGradle": "false"
+    },
+
+    // Docker-in-Docker — lets us run `docker compose up` inside
+    // the Codespace. Required for Step 3 onwards.
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "moby": true,
+      "dockerDashComposeVersion": "v2"
+    },
+
+    // GitHub CLI — we'll use `gh` for creating PRs, viewing
+    // Actions runs, managing secrets.
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+
+    // kubectl + Helm. We won't use them until Step 29 but having
+    // them installed up-front avoids a rebuild later.
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+      "minikube": "none"
+    },
+
+    // Common utilities (curl, wget, jq, htop, etc.) — handy.
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": false,
+      "upgradePackages": true
+    }
+  },
+
+  // ─── Hint to Codespaces about the right machine size ───
+  // The Codespaces "Create" dialog uses this to pre-select 4-core.
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+
+  // ─── Ports to forward and label in the VS Code Ports tab ───
+  // Codespaces auto-forwards ports services bind to; listing them
+  // here gives them friendly labels and lets us mark them private.
+  "forwardPorts": [
+    5432,   // PostgreSQL
+    27017,  // MongoDB
+    6379,   // Redis
+    9092,   // Kafka (host-facing listener)
+    8081,   // Schema Registry
+    8090,   // Kafka UI
+    1025,   // MailHog SMTP
+    8025,   // MailHog UI
+    9200,   // Elasticsearch
+    5601,   // Kibana
+    9090,   // Prometheus
+    3000,   // Grafana
+    16686,  // Jaeger UI
+    9000,   // SonarQube
+    8888,   // Spring Cloud Config Server (future)
+    8761,   // Eureka (future)
+    8080,   // API Gateway (future)
+    9001,   // Auth Service (future)
+    9011, 9012, 9013, 9014, 9015, 9016, 9017, 9018  // domain services (future)
+  ],
+
+  "portsAttributes": {
+    "5432":  { "label": "PostgreSQL",        "onAutoForward": "silent" },
+    "27017": { "label": "MongoDB",           "onAutoForward": "silent" },
+    "6379":  { "label": "Redis",             "onAutoForward": "silent" },
+    "9092":  { "label": "Kafka",             "onAutoForward": "silent" },
+    "8081":  { "label": "Schema Registry",   "onAutoForward": "silent" },
+    "8090":  { "label": "Kafka UI",          "onAutoForward": "notify" },
+    "8025":  { "label": "MailHog UI",        "onAutoForward": "notify" },
+    "5601":  { "label": "Kibana",            "onAutoForward": "notify" },
+    "9090":  { "label": "Prometheus",        "onAutoForward": "notify" },
+    "3000":  { "label": "Grafana",           "onAutoForward": "notify" },
+    "16686": { "label": "Jaeger",            "onAutoForward": "notify" },
+    "9000":  { "label": "SonarQube",         "onAutoForward": "notify" },
+    "8080":  { "label": "API Gateway",       "onAutoForward": "openBrowser" }
+  },
+
+  // ─── Editor customizations ───
+  // These activate when a VS Code client (browser or desktop) connects.
+  // If you use JetBrains Gateway with IntelliJ, IntelliJ ignores these
+  // and uses its own settings — you'll configure IntelliJ separately.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Java tooling (Red Hat language server, debugger, Maven, etc.)
+        "vscjava.vscode-java-pack",
+
+        // Spring Boot tooling (CodeLens for @RequestMapping, properties, etc.)
+        "vmware.vscode-boot-dev-pack",
+
+        // Docker + Kubernetes
+        "ms-azuretools.vscode-docker",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+
+        // YAML with schema validation for compose files, K8s manifests
+        "redhat.vscode-yaml",
+
+        // GitHub Actions workflow linter + run viewer
+        "github.vscode-github-actions",
+
+        // Inline static analysis hints from SonarLint (matches our SonarQube)
+        "sonarsource.sonarlint-vscode",
+
+        // Git supercharger
+        "eamodio.gitlens",
+
+        // Mermaid preview for architecture diagrams we'll add later
+        "bierner.markdown-mermaid",
+
+        // Editor consistency
+        "editorconfig.editorconfig"
+      ],
+      "settings": {
+        // Use Java 25 for the project
+        "java.configuration.runtimes": [
+          {
+            "name": "JavaSE-25",
+            "path": "/usr/local/sdkman/candidates/java/current",
+            "default": true
+          }
+        ],
+        // Format on save with the workspace formatter — keeps diffs clean
+        "editor.formatOnSave": true,
+        // Reuse the Codespace's terminal for Java tasks rather than spawning new ones
+        "java.import.maven.enabled": true,
+        // SonarLint should not pester for connected mode until we set up SonarQube
+        "sonarlint.disableTelemetry": true,
+        // Make file tree easier to navigate in a big multi-module project
+        "explorer.compactFolders": false
+      }
+    }
+  },
+
+  // ─── Run after the container is created ───
+  // First-time smoke test: if the Maven Wrapper exists, validate the
+  // parent POM. If it doesn't (the very first launch before Step 2 is
+  // complete), fall through quietly.
+  "postCreateCommand": "if [ -f ./mvnw ]; then chmod +x ./mvnw && ./mvnw -N validate; else echo 'Maven wrapper not yet generated — run: mvn wrapper:wrapper -Dmaven=3.9.9'; fi",
+
+  // ─── User inside the container ───
+  // The base image creates a `vscode` user with sudo. Running as a
+  // non-root user matches production-image best practice.
+  "remoteUser": "vscode",
+
+  // Whether the container should attempt to mount the host SSH agent —
+  // we leave this default. Codespaces handles GitHub auth via OAuth.
+  "updateRemoteUserUID": true
+}

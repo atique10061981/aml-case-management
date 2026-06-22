@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ================================================================
+         AML CASE MANAGEMENT — PARENT POM (Multi-Module Maven Monorepo)
+         ================================================================
+         Root of a multi-module Maven build. Owns:
+           • Version pins for Java, Spring Boot, Spring Cloud, libraries
+           • Dependency-management BOMs imported once, applied everywhere
+           • Plugin configuration (compiler, surefire, failsafe, jacoco,
+             sonar, spotless, spring-boot)
+           • The <modules> registry, populated as we build each service
+
+         Why not extend spring-boot-starter-parent?
+         ─────────────────────────────────────────
+         We import the Spring Boot BOM in <dependencyManagement> instead.
+         This is the enterprise pattern: it leaves the parent POM free
+         to manage corporate plugins and policies without inheritance
+         conflicts. Cost: each service module declares spring-boot-maven-
+         plugin explicitly. <pluginManagement> below makes that a one-
+         liner in each module.
+         ================================================================ -->
+
+    <groupId>com.amlcm</groupId>
+    <artifactId>aml-case-management-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>AML Case Management — Parent</name>
+    <description>
+        Parent POM for the AML Case Management microservice platform.
+        Manages versions, dependency BOMs, and common plugin
+        configuration for all child modules.
+    </description>
+
+    <!-- =============================================================
+         MODULES — added incrementally over the roadmap
+         ============================================================= -->
+    <modules>
+        <!-- Phase B (Platform):
+             <module>service-config-server</module>
+             <module>service-eureka</module>
+             <module>service-api-gateway</module>
+        -->
+        <!-- Phase C (Security & Shared):
+             <module>lib-aml-common</module>
+             <module>lib-aml-security-starter</module>
+             <module>service-auth</module>
+        -->
+        <!-- Phase D (Domain):
+             <module>service-customer</module>
+             <module>service-transaction</module>
+             <module>service-alert</module>
+             <module>service-case</module>
+             <module>service-sar</module>
+             <module>service-notification</module>
+             <module>service-reporting</module>
+             <module>service-audit</module>
+        -->
+    </modules>
+
+    <!-- =============================================================
+         PROPERTIES — single source of truth for every version
+         ============================================================= -->
+    <properties>
+        <!-- ─── Java + Encoding ─── -->
+        <java.version>25</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- ─── Spring ecosystem (the locked combo) ─── -->
+        <spring-boot.version>3.5.15</spring-boot.version>
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
+
+        <!-- ─── Testing ─── -->
+        <testcontainers.version>1.20.4</testcontainers.version>
+
+        <!-- ─── Code generation / DTO mapping ─── -->
+        <lombok.version>1.18.46</lombok.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+
+        <!-- ─── API docs ─── -->
+        <springdoc-openapi.version>2.7.0</springdoc-openapi.version>
+
+        <!-- ─── Observability (JSON logs for ELK) ─── -->
+        <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
+
+        <!-- ─── Maven plugins (pinned for reproducible builds) ─── -->
+        <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
+        <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
+        <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
+
+        <!-- ─── SonarQube wiring (used in Step 26) ─── -->
+        <sonar.host.url>http://localhost:9000</sonar.host.url>
+        <sonar.projectKey>com.amlcm:aml-case-management</sonar.projectKey>
+        <sonar.coverage.jacoco.xmlReportPaths>
+            ${project.basedir}/target/site/jacoco/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
+    </properties>
+
+    <!-- =============================================================
+         DEPENDENCY MANAGEMENT — version pins applied to every child
+         ============================================================= -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Boot BOM — manages ~250 transitive deps -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring Cloud BOM — Eureka, Gateway, Config, Resilience4j -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Testcontainers BOM — postgres, kafka, mongodb modules -->
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- MapStruct — compile-time DTO ↔ entity mapping -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+
+            <!-- springdoc-openapi — OpenAPI 3 + Swagger UI for Spring Boot 3 -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc-openapi.version}</version>
+            </dependency>
+
+            <!-- Logstash JSON encoder — structured logs into ELK -->
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash-logback-encoder.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- =============================================================
+         BUILD — plugin configuration inherited by every child module
+         ============================================================= -->
+    <build>
+        <pluginManagement>
+            <plugins>
+
+                <!-- COMPILER — Java 25, annotation processors ordered for
+                     Lombok → MapStruct → binding (Lombok generates first
+                     so MapStruct can see the getters/setters). -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <release>${java.version}</release>
+                        <!-- Keep parameter names in bytecode — required for
+                             Spring's @PathVariable without explicit names. -->
+                        <parameters>true</parameters>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>${mapstruct.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <version>${lombok-mapstruct-binding.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+
+                <!-- SUREFIRE — unit tests (*Test.java). The @{argLine}
+                     placeholder is filled by JaCoCo's prepare-agent goal. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                    <configuration>
+                        <argLine>@{argLine} -Xshare:off</argLine>
+                    </configuration>
+                </plugin>
+
+                <!-- FAILSAFE — integration tests (*IT.java). Splits the
+                     pyramid: `mvn test` is fast, `mvn verify` is thorough. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${maven-failsafe-plugin.version}</version>
+                    <configuration>
+                        <argLine>@{argLine} -Xshare:off</argLine>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>integration-test</goal>
+                                <goal>verify</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- JACOCO — coverage agent. Writes data during tests,
+                     emits XML at the end for SonarQube to consume. -->
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco-maven-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>prepare-unit</id>
+                            <goals><goal>prepare-agent</goal></goals>
+                        </execution>
+                        <execution>
+                            <id>prepare-integration</id>
+                            <goals><goal>prepare-agent-integration</goal></goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>verify</phase>
+                            <goals><goal>report</goal></goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- ENFORCER — fail-fast on wrong Java/Maven versions -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven-enforcer-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>enforce-versions</id>
+                            <goals><goal>enforce</goal></goals>
+                            <configuration>
+                                <rules>
+                                    <requireMavenVersion>
+                                        <version>[3.9.0,)</version>
+                                    </requireMavenVersion>
+                                    <requireJavaVersion>
+                                        <version>[25,26)</version>
+                                    </requireJavaVersion>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- SONAR — invoked explicitly via `mvn sonar:sonar` -->
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>${sonar-maven-plugin.version}</version>
+                </plugin>
+
+                <!-- SPOTLESS — auto-format Java to Google Java Format -->
+                <plugin>
+                    <groupId>com.diffplug.spotless</groupId>
+                    <artifactId>spotless-maven-plugin</artifactId>
+                    <version>${spotless-maven-plugin.version}</version>
+                    <configuration>
+                        <java>
+                            <googleJavaFormat>
+                                <version>1.24.0</version>
+                                <style>GOOGLE</style>
+                            </googleJavaFormat>
+                            <removeUnusedImports/>
+                            <importOrder/>
+                        </java>
+                    </configuration>
+                </plugin>
+
+                <!-- SPRING BOOT — packages fat JAR / OCI image.
+                     Activated by service modules; library modules will
+                     NOT list this plugin so they produce plain JARs. -->
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                    <configuration>
+                        <excludes>
+                            <exclude>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                            </exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <!-- Enforcer runs at parent level: misconfigured envs fail
+             before any module starts compiling. -->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
