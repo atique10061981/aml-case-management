@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ============================================================
+         Reference the parent. The relativePath tells Maven where
+         to find the parent POM on disk (one directory up).
+         ============================================================ -->
+    <parent>
+        <groupId>com.amlcm</groupId>
+        <artifactId>aml-case-management-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>service-config-server</artifactId>
+    <name>AML — Config Server</name>
+    <description>
+        Spring Cloud Config Server. Centralizes configuration for every
+        microservice in the AML Case Management platform. Serves files
+        from config-repo/ via HTTP, keyed by service name and profile.
+    </description>
+
+    <!-- ============================================================
+         Dependencies — versions OMITTED because the parent's
+         dependencyManagement (which imports the Spring Boot and
+         Spring Cloud BOMs) pins them centrally.
+         ============================================================ -->
+    <dependencies>
+
+        <!-- Spring Cloud Config Server.
+             Provides @EnableConfigServer and the HTTP endpoints that
+             serve configuration to client services. -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-config-server</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Web.
+             Config Server is a regular Spring MVC application; this
+             gives it Tomcat and the @RestController machinery used
+             internally to expose the config endpoints. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Actuator.
+             Production-grade /health, /info, /metrics endpoints.
+             We expose these so Prometheus (Step 22) can scrape them. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- ─── Test scope ─── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- ============================================================
+         Plugins — the parent POM's <pluginManagement> already
+         configured spring-boot-maven-plugin. We just have to ACTIVATE
+         it here (with no version or config — that's inherited).
+         ============================================================ -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

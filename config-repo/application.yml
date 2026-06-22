@@ -1,0 +1,34 @@
+# ============================================================
+# Shared configuration for all microservices.
+# ============================================================
+# Properties in this file are applied to EVERY service that
+# fetches config from this server. Service-specific files
+# (e.g. service-customer.yml) override these values.
+# ============================================================
+
+# ─── Generic Actuator exposure ───
+# Every service exposes /actuator/health for Kubernetes
+# liveness/readiness probes, and /actuator/prometheus for
+# metrics scraping.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+# ─── Common logging ───
+logging:
+  pattern:
+    # Include trace + span IDs so logs from a single request can
+    # be correlated across services (set up properly in Step 20).
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

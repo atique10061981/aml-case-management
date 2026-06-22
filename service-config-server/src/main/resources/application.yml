@@ -1,0 +1,64 @@
+# ============================================================
+# Spring Cloud Config Server — own configuration
+# ============================================================
+# This file configures the Config Server itself. The actual
+# configuration files it SERVES to other services live in
+# config-repo/ at the project root.
+# ============================================================
+
+server:
+  port: 8888                    # Spring Cloud Config's well-known port
+
+spring:
+  application:
+    name: service-config-server
+  profiles:
+    # "native" = serve configs from a filesystem path or classpath,
+    # not from a Git repo. In production we'd flip this to a git
+    # profile pointing at a separate repository.
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          # Absolute path to the directory holding the config files
+          # this server will serve. Inside the Codespace it's at
+          # /workspaces/aml-case-management/config-repo (the same
+          # path will work on any contributor's Codespace because
+          # they're all rooted at /workspaces/<repo-name>).
+          search-locations: file:///workspaces/aml-case-management/config-repo
+
+# ─── Actuator endpoints ──────────────────────────────────────
+# Exposed so Prometheus (Step 22) can scrape and so we can
+# health-check the Config Server from other services or k8s.
+management:
+  endpoints:
+    web:
+      exposure:
+        # `env` lets us peek at the active config sources — very
+        # handy for diagnosing "why is this property the value it is".
+        include: health,info,env,metrics,prometheus,refresh
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+  # Identify this instance to Prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+info:
+  app:
+    name: ${spring.application.name}
+    description: ${spring.application.description:Central configuration server}
+
+# ─── Logging ─────────────────────────────────────────────────
+logging:
+  level:
+    root: INFO
+    # Bump this to DEBUG temporarily if config resolution is misbehaving
+    # and you want to see which files were searched and matched.
+    org.springframework.cloud.config: INFO
+    org.springframework.cloud.config.server.environment: INFO

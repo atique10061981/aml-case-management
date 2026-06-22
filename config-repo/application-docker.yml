@@ -1,0 +1,14 @@
+# ============================================================
+# Properties applied when the "docker" profile is active.
+# Used by Dockerized services (Step 27 onwards).
+# ============================================================
+# When a service runs inside a Docker container, it reaches
+# its dependencies by container name, not localhost. This file
+# only contains shared docker-profile properties; per-service
+# overrides go in service-<name>-docker.yml.
+
+# Tracing collector address (container name vs localhost)
+management:
+  otlp:
+    tracing:
+      endpoint: http://jaeger:4318/v1/traces

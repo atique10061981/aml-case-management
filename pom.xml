@@ -42,8 +42,9 @@
          MODULES — added incrementally over the roadmap
          ============================================================= -->
     <modules>
-        <!-- Phase B (Platform):
+        <!-- Phase B (Platform):-->
              <module>service-config-server</module>
+        <!--
              <module>service-eureka</module>
              <module>service-api-gateway</module>
         -->
@@ -99,7 +100,7 @@
         <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
         <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
         <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
-        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
         <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
 
@@ -330,6 +331,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
+            </plugin>
+
+            <!-- JaCoCo: must run so Surefire's @{argLine} placeholder resolves
+                 to the javaagent flag. Without this, the test JVM crashes
+                 trying to interpret the literal string "@{argLine}". -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
