@@ -1,0 +1,24 @@
+# ============================================================
+# Prometheus scrape config. New microservices' actuator
+# endpoints get added here as they come online (Step 22).
+# ============================================================
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'aml-case-management'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Spring services run on the Codespace host (outside Docker).
+  # Prometheus reaches them via host.docker.internal, which Docker
+  # provides in DinD mode (Codespaces). Uncomment as each service
+  # comes up in Steps 10–17.
+  #
+  # - job_name: 'service-customer'
+  #   metrics_path: '/actuator/prometheus'
+  #   static_configs:
+  #     - targets: ['host.docker.internal:9011']
